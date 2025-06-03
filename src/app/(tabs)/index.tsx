@@ -1,5 +1,27 @@
-import { StyleSheet, Text, View } from "react-native";
+import { FlatList } from "react-native";
+import posts from "~/assets/data/posts.json";
+import { Feather, Ionicons, AntDesign } from "@expo/vector-icons";
+import PostListItem from "~/src/components/PostListItem";
 
-export default function About() {
-  return <Text>Hello World</Text>;
+export default function FeedScreen() {
+  return (
+    <FlatList
+      data={posts}
+      renderItem={({ item }) => <PostListItem post={item} />}
+      keyExtractor={(item) => item.id.toString()}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{
+        gap: 10,
+        maxWidth: 512,
+        width: "100%",
+        alignSelf: "center",
+      }}
+    />
+  );
+  // return (
+  //   <View>
+  //     <PostListItem post={posts[2]} />
+  //     <PostListItem post={posts[1]} />
+  //   </View>
+  // );
 }

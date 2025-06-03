@@ -7,6 +7,7 @@ export default function TabsLayout() {
       screenOptions={{
         tabBarActiveTintColor: "#e91e63",
         tabBarShowLabel: false,
+        headerTitleAlign: "center",
       }}
     >
       <Tabs.Screen
@@ -23,7 +24,7 @@ export default function TabsLayout() {
         options={{
           headerTitle: "New",
           tabBarIcon: ({ color }) => (
-            <FontAwesome name="plus-square-o" size={26} color="black" />
+            <FontAwesome name="plus-square-o" size={26} color={color} />
           ),
         }}
       />

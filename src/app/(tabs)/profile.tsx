@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function Profile() {
+export default function ProfileScreen() {
   return <Text>Profile</Text>;
 }
