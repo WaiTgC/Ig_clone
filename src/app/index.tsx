@@ -5,8 +5,8 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <View style={styles.main}>
-        <Text style={styles.title}>Hello WorldMm</Text>
-        <Redirect href="/(tabs)" />
+        <Text style={styles.title}>Hello World IG</Text>
+        <Redirect href="/(auth)" />
         {/* <Link href="/about" style={styles.subtitle}>
           This is the first page of your app.
         </Link> */}
