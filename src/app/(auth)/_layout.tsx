@@ -8,5 +8,14 @@ export default function AuthLayout() {
     return <Redirect href="/(tabs)" />;
   }
 
-  return <Stack />;
+  return (
+    <Stack
+      screenOptions={{
+        headerTitleAlign: "center",
+        headerStyle: {
+          backgroundColor: "#833ab4",
+        },
+      }}
+    />
+  );
 }

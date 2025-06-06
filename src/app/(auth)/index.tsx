@@ -1,24 +1,31 @@
-import React, { useState } from "react";
-import { Alert, StyleSheet, View, AppState, TextInput } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  Alert,
+  StyleSheet,
+  View,
+  TextInput,
+  AppState,
+  Text,
+} from "react-native";
 import Button from "~/src/components/Button";
 import { supabase } from "~/src/lib/supabase";
-
-// Tells Supabase Auth to continuously refresh the session automatically if
-// the app is in the foreground. When this is added, you will continue to receive
-// `onAuthStateChange` events with the `TOKEN_REFRESHED` or `SIGNED_OUT` event
-// if the user's session is terminated. This should only be registered once.
-AppState.addEventListener("change", (state) => {
-  if (state === "active") {
-    supabase.auth.startAutoRefresh();
-  } else {
-    supabase.auth.stopAutoRefresh();
-  }
-});
 
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   async function signInWithEmail() {
     setLoading(true);
@@ -49,38 +56,45 @@ export default function Auth() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <TextInput
-          onChangeText={(text) => setEmail(text)}
-          value={email}
-          placeholder="email@address.com"
-          autoCapitalize={"none"}
-          className="border border-grey-300 p-3 rounded-md "
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <TextInput
-          onChangeText={(text) => setPassword(text)}
-          value={password}
-          secureTextEntry={true}
-          placeholder="Password"
-          autoCapitalize={"none"}
-          className="border border-grey-300 p-3 rounded-md "
-        />
-      </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          title="Sign in"
-          disabled={loading}
-          onPress={() => signInWithEmail()}
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Button
-          title="Sign up"
-          disabled={loading}
-          onPress={() => signUpWithEmail()}
-        />
+      <View style={styles.content}>
+        <Text style={styles.title}>Instagram</Text>
+        <View style={styles.inputContainer}>
+          <TextInput
+            onChangeText={(text) => setEmail(text)}
+            value={email}
+            placeholder="Username"
+            autoCapitalize="none"
+            style={styles.input}
+          />
+          <TextInput
+            onChangeText={(text) => setPassword(text)}
+            value={password}
+            secureTextEntry={true}
+            placeholder="Password"
+            autoCapitalize="none"
+            style={styles.input}
+          />
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Login"
+            disabled={loading}
+            onPress={() => signInWithEmail()}
+            style={styles.loginButton}
+          />
+        </View>
+        <View
+          style={styles.signupTextContainer}
+          className="flex-col items-center fixed bottom-0 left-0 right-0 p-4 w-[80%] mx-auto"
+        >
+          <Text style={styles.signupText}>Don’t have an account? </Text>
+          <Button
+            title="Sign Up"
+            disabled={loading}
+            onPress={() => signUpWithEmail()}
+            style={styles.signupButton}
+          />
+        </View>
       </View>
     </View>
   );
@@ -88,15 +102,56 @@ export default function Auth() {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 40,
-    padding: 12,
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#833ab4", // Fallback solid color
   },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: "stretch",
+  content: {
+    width: "80%",
+    alignItems: "center",
   },
-  mt20: {
-    marginTop: 20,
+  title: {
+    fontFamily: "cursive", // Use 'Pacifico' or similar (install via expo-font if needed)
+    fontSize: 40,
+    color: "#fff",
+    marginBottom: 40,
+    textAlign: "center",
+  },
+  inputContainer: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    color: "#000",
+  },
+  buttonContainer: {
+    width: "100%",
+    marginBottom: 10,
+  },
+  loginButton: {
+    backgroundColor: "#fff",
+    borderRadius: 5,
+  },
+  signupTextContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  signupText: {
+    color: "#fff",
+    fontSize: 21,
+    marginBottom: 10,
+    textAlign: "center",
+    width: "100%",
+  },
+  signupButton: {
+    backgroundColor: "transparent",
+    padding: 0,
   },
 });

@@ -1,12 +1,16 @@
-import { TextInput, Text, View, Image, Pressable } from "react-native";
+import { TextInput, Text, View, Image, Pressable, Alert } from "react-native";
 import { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import Button from "~/src/components/Button";
 import { uploadImage } from "~/src/lib/cloudinary";
+import { supabase } from "~/src/lib/supabase";
+import { useAuth } from "~/src/app/Providers/AuthProvider";
+import { router } from "expo-router";
 
 export default function CreatePost() {
   const [caption, setCaption] = useState<string>("");
   const [image, setImage] = useState<string | null>(null);
+  const { session } = useAuth();
 
   useEffect(() => {
     // Only trigger pickImage if image is null on component mount
@@ -29,25 +33,69 @@ export default function CreatePost() {
       }
     } catch (error) {
       console.error("Error picking image:", error);
+      Alert.alert("Error", "Failed to pick image. Please try again.");
     }
   };
 
   const createPost = async () => {
+    // Validate authentication
+    if (!session?.user?.id) {
+      console.error("No authenticated user found:", session);
+      Alert.alert("Error", "You must be logged in to create a post.");
+      return;
+    }
+
+    // Validate image
+    if (!image) {
+      console.error("No image selected");
+      Alert.alert("Error", "Please select an image to post.");
+      return;
+    }
+
     try {
-      const uploadedImage = await uploadImage(image!);
-      if (uploadedImage.secure_url) {
-        console.log(
-          "Post created successfully with image URL:",
-          uploadedImage.secure_url
-        );
-        // Add logic to save the post with caption and uploadedImage.secure_url to your backend
-        setCaption(""); // Reset caption
-        setImage(null); // Reset image
-      } else {
-        console.log("Failed to create post: No image URL");
+      // Upload image to Cloudinary
+      const response = await uploadImage(image);
+      if (!response?.secure_url) {
+        console.error("Failed to upload image: No secure_url returned");
+        Alert.alert("Error", "Failed to upload image. Please try again.");
+        return;
       }
-    } catch (error) {
-      console.error("Error creating post:", error);
+
+      console.log("image id: ", response?.public_id);
+
+      // Save the post in database
+      const { data, error } = await supabase
+        .from("posts")
+        .insert([
+          {
+            caption: caption || null, // Allow empty captions
+            image: response?.public_id,
+            user_id: session?.user.id,
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error("Supabase insert error:", {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        Alert.alert("Error", `Failed to create post: ${error.message}`);
+        return;
+      }
+
+      console.log("Inserted post:", data);
+      setCaption(""); // Reset caption
+      setImage(null); // Reset image
+      router.push("/(tabs)"); // Navigate to home on success
+    } catch (error: any) {
+      console.error("Unexpected error creating post:", {
+        message: error.message,
+        stack: error.stack,
+      });
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
     }
   };
 
